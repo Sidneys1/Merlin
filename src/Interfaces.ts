@@ -31,6 +31,7 @@ export interface IDrawable {
 }
 
 export interface MouseDetails {
+    mouseInCanvas: boolean;
     X: number;
     Y: number;
     buttons: [boolean, boolean, boolean];

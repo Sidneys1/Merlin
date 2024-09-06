@@ -15,7 +15,7 @@ export class Renderer {
     public static _ctx: CanvasRenderingContext2D;
     public static get Ctx(): CanvasRenderingContext2D {
         if (this._ctx === undefined) {
-            const ctx = this.Canvas.getContext("2d");
+            const ctx = this.Canvas.getContext("2d", {alpha: false});
             if (ctx === null)
                 throw "Could not get canvas context.";
             this._ctx = ctx;

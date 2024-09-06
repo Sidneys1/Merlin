@@ -25,6 +25,8 @@ export class DebugModule extends DrawableGameModule {
         this.textHeight = 10 + Renderer.MeasureText(DEBUG_FONT, "0").actualBoundingBoxAscent;
 
         DebugModule.S = this;
+
+        this.Enabled = true;
     }
 
     Draw(_: number): void {
@@ -42,7 +44,7 @@ export class DebugModule extends DrawableGameModule {
         Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * 3, "Keys: " + InputManager.S.Keys().join(', '));
 
         const mouse = InputManager.S.MousePos();
-        Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * 4, `Mouse: ${mouse[0]},${mouse[1]} (${(mouse[0] / 25).toFixed(2)},${(mouse[1] / 25).toFixed(2)}) ` + InputManager.S.MouseButtons().join(', '));
+        Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * 4, `Mouse: ${mouse[0]},${mouse[1]} (${(mouse[0] / 25).toFixed(2)},${(mouse[1] / 25).toFixed(2)}) ` + InputManager.S.MouseButtons().join(', ') + ' ' + (InputManager.S.MouseInCanvas ? 'Inside' : 'Outside'));
 
         for (let i = 0; i < this.Extras.length; i++) {
             const extra = this.Extras[i];
