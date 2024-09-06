@@ -1,0 +1,21 @@
+{
+  "extends": "@tsconfig/recommended",
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES2022",
+    "declaration": true,
+    "sourceMap": true,
+    "composite": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "rootDir": "src/",
+    "outDir": "dist/",
+    "module": "CommonJS",
+    "paths": {
+      "@merlin/engine": ["./merlin-engine"]
+    },
+  }
+}

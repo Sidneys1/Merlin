@@ -1,0 +1,16 @@
+{
+  "name": "@merlin/engine",
+  "version": "1.0.0",
+  "description": "A really bad WebGL game engine.",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "test": ""
+  },
+  "author": "Sidneys1"
+}
