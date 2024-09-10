@@ -32,27 +32,33 @@ export class DebugModule extends DrawableGameModule {
     Draw(_: number): void {
         this.totalFrames++;
 
-        const ctx = Renderer.Ctx;
+        // const ctx = Renderer.Ctx;
         for (const entity of this._game.State?.Entities ?? []) {
             Renderer.FillCircle('red', entity.Pos[0], entity.Pos[1], 3);
         }
 
-        Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight, `${this.Fps} fps`);
+        Renderer.Ctx.save();
+        Renderer.Ctx.shadowColor = 'black';
+        Renderer.Ctx.shadowOffsetX = Renderer.Ctx.shadowOffsetY = 1;
 
-        Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * 2, "Stage: " + (this._game.State?.Name || "None"));
+        Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight, `${this.Fps} fps`);
 
-        Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * 3, "Keys: " + InputManager.S.Keys().join(', '));
+        Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 2, "Stage: " + (this._game.State?.Name || "None"));
+
+        Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 3, "Keys: " + InputManager.S.Keys().join(', '));
 
         const mouse = InputManager.S.MousePos();
-        Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * 4, `Mouse: ${mouse[0]},${mouse[1]} (${(mouse[0] / 25).toFixed(2)},${(mouse[1] / 25).toFixed(2)}) ` + InputManager.S.MouseButtons().join(', ') + ' ' + (InputManager.S.MouseInCanvas ? 'Inside' : 'Outside'));
+        Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 4, `Mouse: ${mouse[0]},${mouse[1]} (${(mouse[0] / 25).toFixed(2)},${(mouse[1] / 25).toFixed(2)}) ` + InputManager.S.MouseButtons().join(', ') + ' ' + (InputManager.S.MouseInCanvas ? 'Inside' : 'Outside'));
 
         for (let i = 0; i < this.Extras.length; i++) {
             const extra = this.Extras[i];
-            Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * (5 + i), extra());
+            Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * (5 + i), extra());
         }
 
+        Renderer.Ctx.restore();
+
         // if (player !== undefined)
-        //     Renderer.DrawText("black", DEBUG_FONT, 10, this.textHeight * 5, `Player: ${(player.Pos[0] / 25).toFixed(2)},${(player.Pos[1] / 25).toFixed(2)}`);
+        //     Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 5, `Player: ${(player.Pos[0] / 25).toFixed(2)},${(player.Pos[1] / 25).toFixed(2)}`);
     }
     
     Update(elapsedTime: number): void {
