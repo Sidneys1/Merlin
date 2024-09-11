@@ -13,7 +13,8 @@ export class DebugModule extends DrawableGameModule {
     private elapsedTime: number = 0;
     private textHeight: number;
 
-    public Extras: (() => string)[] = [];
+    public ExtraDebugText: (() => string)[] = [];
+    public ExtraDebugDraw: (() => void)[] = [];
     
     public static S?: DebugModule;
 
@@ -50,12 +51,14 @@ export class DebugModule extends DrawableGameModule {
         const mouse = InputManager.S.MousePos();
         Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 4, `Mouse: ${mouse[0]},${mouse[1]} (${(mouse[0] / 25).toFixed(2)},${(mouse[1] / 25).toFixed(2)}) ` + InputManager.S.MouseButtons().join(', ') + ' ' + (InputManager.S.MouseInCanvas ? 'Inside' : 'Outside'));
 
-        for (let i = 0; i < this.Extras.length; i++) {
-            const extra = this.Extras[i];
+        for (let i = 0; i < this.ExtraDebugText.length; i++) {
+            const extra = this.ExtraDebugText[i];
             Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * (5 + i), extra());
         }
 
         Renderer.Ctx.restore();
+
+        this.ExtraDebugDraw.forEach(d => d());
 
         // if (player !== undefined)
         //     Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 5, `Player: ${(player.Pos[0] / 25).toFixed(2)},${(player.Pos[1] / 25).toFixed(2)}`);
