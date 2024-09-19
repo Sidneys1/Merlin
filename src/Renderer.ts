@@ -41,14 +41,21 @@ export class Renderer {
         return dpr / bsr;
     }
 
+    private static _hiDpi = false;
+    public static get HiDpi() {return this._hiDpi;}
     public static ResizeCanvas(): void {
-        console.debug(`Resizing canvas (pixel ratio: ${this.PixelRatio})...`);
-        const can = this.Canvas;
         const ratio = this.PixelRatio;
+        if (ratio === 1) {
+            console.debug("Not resizing canvas (pixel ratio is 1x).");
+            return;
+        }
+        console.debug(`Resizing canvas (pixel ratio: ${ratio})...`);
+        const can = this.Canvas;
         this._width = can.width;
         this._height = can.height;
         can.width = can.width * ratio;
         can.height = can.height * ratio;
+        this._hiDpi = true;
 
         this.Ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
@@ -76,7 +83,7 @@ export class Renderer {
         this.Ctx.fillRect(0, 0, this.Width, this.Height);
     }
 
-    static DrawImage(image: HTMLImageElement, x: number, y: number, w?: number, h?: number, opacity = 1) {
+    static DrawImage(image: CanvasImageSource, x: number, y: number, w?: number, h?: number, opacity = 1) {
         const restore = this.Ctx.globalAlpha;
         this.Ctx.globalAlpha = opacity;
         if (w !== undefined && h !== undefined)

@@ -143,6 +143,10 @@ export class InputManager extends GameModule {
         return this.thisMouse.buttons[button] && !this.lastMouse.buttons[button];
     }
 
+    MouseWentUp(button: MouseButton): boolean {
+        return !this.thisMouse.buttons[button] && this.lastMouse.buttons[button];
+    }
+
     MouseUp(button: MouseButton): boolean {
         return !this.thisMouse.buttons[button] && this.lastMouse.buttons[button];
     }
