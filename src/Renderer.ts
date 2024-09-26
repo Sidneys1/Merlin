@@ -72,7 +72,7 @@ export class Renderer {
         return this.Ctx.measureText(text);
     }
 
-    static DrawText(color: string, font: string, x: number, y: number, text: string, maxWidth?: number) { 
+    static DrawText(color: string|CanvasGradient, font: string, x: number, y: number, text: string, maxWidth?: number) { 
         this.Ctx.fillStyle = color;
         this.Ctx.font = font;
         this.Ctx.fillText(text, x, y, maxWidth);

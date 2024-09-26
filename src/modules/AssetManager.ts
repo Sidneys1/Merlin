@@ -26,16 +26,14 @@ export class AssetManager {
 
     public static async LoadRequiredAssets() {
         const start = Date.now();
-        for (const asset of this.requiredAssetList)
-            await this.LoadAsset(asset, false);
+        await Promise.all(this.requiredAssetList.map(asset => this.LoadAsset(asset, false)));
         const diff = Date.now() - start;
         console.debug(`Loaded required assets in ${diff}ms`);
     }
 
     public static async LoadAllAssets() {
         const start = Date.now();
-        for (const asset of this.assetList)
-            await this.LoadAsset(asset);
+        await Promise.all(this.assetList.map(asset => this.LoadAsset(asset)));
         const diff = Date.now() - start;
         console.debug(`Loaded all other assets in ${diff}ms`);
     }
@@ -49,10 +47,11 @@ export class AssetManager {
                     img.addEventListener('load', e => {
                         if (increment) this.assetsLoaded++;
                         this.imageAssets.set(asset[1], img);
-                        console.debug(`Loaded asset "${asset[1]}".`)
+                        console.debug(`Loaded asset "${asset[1]}".`);
                         resolve();
                     });
                     img.addEventListener('error', e => reject(e));
+                    console.debug(`Requesting asset "${asset[1]}"...`);
                     img.src = assetPath;
                     break;
             

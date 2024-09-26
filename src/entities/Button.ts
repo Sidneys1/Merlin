@@ -5,9 +5,9 @@ import { Renderer } from "../Renderer.js";
 import { InputManager } from "../modules/InputManager.js";
 
 type ButtonStyle = {
-    Background: string;
-    Border: string;
-    TextColor: string;
+    Background: string|CanvasGradient|null;
+    Border: string|CanvasGradient|null;
+    TextColor: string|CanvasGradient;
 };
 
 export class Button extends Entity {
@@ -66,8 +66,8 @@ export class Button extends Entity {
     Draw(elapsedTime: number): void {
         const style = this.clicked ? this.ClickStyle : (this.hovered ? this.HoverStyle : this.Style);
 
-        Renderer.FillRect(style.Background, ...this.Pos, ...this.Size);
-        Renderer.DrawRect(style.Border, ...this.Pos, ...this.Size);
+        if (style.Background !== null) Renderer.FillRect(style.Background, ...this.Pos, ...this.Size);
+        if (style.Border !== null) Renderer.DrawRect(style.Border, ...this.Pos, ...this.Size);
 
         const textX = this.Pos[0] + this.halfWidth - (this.textMetrics.width / 2);
         const textY = this.Pos[1] + this.halfHeight + (this.textMetrics.actualBoundingBoxAscent / 2);

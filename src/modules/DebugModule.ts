@@ -19,15 +19,13 @@ export class DebugModule extends DrawableGameModule {
     public static S?: DebugModule;
 
     constructor(game: IGame) {
-        super(false, -9999, -9999);
+        super(true, -9999, -9999);
 
         this._game = game;
 
         this.textHeight = 10 + Renderer.MeasureText(DEBUG_FONT, "0").actualBoundingBoxAscent;
 
         DebugModule.S = this;
-
-        this.Enabled = true;
     }
 
     Draw(_: number): void {
