@@ -12,6 +12,10 @@ export class AssetManager {
         (required ? this.requiredAssetList : this.assetList).push([type, source]);
     }
 
+    public static RequestAssets(type: AssetType, ...sources: string[]): void {
+        this.assetList.push(...sources.map(source => <[AssetType, string]>[type, source]));
+    }
+
     public static GetImage(id: string) {
         const ret = this.imageAssets.get(id);
         if (ret === undefined)
