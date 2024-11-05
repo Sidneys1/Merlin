@@ -14,12 +14,12 @@ export class DebugModule extends DrawableGameModule {
     private textHeight: number;
 
     public ExtraDebugText: (() => string)[] = [];
-    public ExtraDebugDraw: (() => void)[] = [];
+    public ExtraDebugDraw: (() => boolean)[] = [];
     
     public static S?: DebugModule;
 
     constructor(game: IGame) {
-        super(false, -9999, -9999);
+        super(true, -9999, -9999);
 
         this._game = game;
 
@@ -56,7 +56,14 @@ export class DebugModule extends DrawableGameModule {
 
         Renderer.Ctx.restore();
 
-        this.ExtraDebugDraw.forEach(d => d());
+        for (let i = 0; i < this.ExtraDebugDraw.length; ) {
+            const d = this.ExtraDebugDraw[i];
+            if (!d()) {
+                this.ExtraDebugDraw.splice(i, 1);
+                continue;
+            }
+            i++;
+        }
 
         // if (player !== undefined)
         //     Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 5, `Player: ${(player.Pos[0] / 25).toFixed(2)},${(player.Pos[1] / 25).toFixed(2)}`);

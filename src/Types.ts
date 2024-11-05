@@ -5,6 +5,9 @@ export type Line = [start: Point, end: Point];
 export type Rectangle = [x: number, y: number, w: number, h: number];
 
 export abstract class PointMath {
+    public static Floor(point: Point): Point {
+        return [Math.floor(point[0]), Math.floor(point[1])];
+    }
     public static dot(left: Point, right: Point): number {
         return (left[0] * right[0]) + (left[1] * right[1]);
     }
