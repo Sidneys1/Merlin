@@ -19,7 +19,7 @@ export class DebugModule extends DrawableGameModule {
     public static S?: DebugModule;
 
     constructor(game: IGame) {
-        super(true, -9999, -9999);
+        super(false, -9999, -9999);
 
         this._game = game;
 

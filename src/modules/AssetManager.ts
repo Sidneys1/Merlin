@@ -1,10 +1,13 @@
 import { AssetType } from "../Constants.js";
 
+import {Howl} from "howler";
+
 export class AssetManager {
     private constructor(){}
     
     private static assetsLoaded = 0;
     private static imageAssets = new Map<string, HTMLImageElement>();
+    private static soundAssets = new Map<string, Howl>();
     private static assetList: [AssetType, string][] = [];
     private static requiredAssetList: [AssetType, string][] = [];
 
@@ -18,6 +21,13 @@ export class AssetManager {
 
     public static GetImage(id: string) {
         const ret = this.imageAssets.get(id);
+        if (ret === undefined)
+            throw `Missing asset "${id}".`;
+        return ret;
+    }
+
+    public static GetSound(id: string) {
+        const ret = this.soundAssets.get(id);
         if (ret === undefined)
             throw `Missing asset "${id}".`;
         return ret;
@@ -57,6 +67,21 @@ export class AssetManager {
                     img.addEventListener('error', e => reject(e));
                     console.debug(`Requesting asset "${asset[1]}"...`);
                     img.src = assetPath;
+                    break;
+
+                case AssetType.Sound:
+                    console.debug(`Requesting asset "${asset[1]}"...`);
+                    const sound = new Howl({
+                        src: asset[1],
+                        html5: true,
+                        preload: true,
+                        onload: () => {
+                            if (increment) this.assetsLoaded++;
+                            this.soundAssets.set(asset[1], sound);
+                            console.debug(`Loaded asset "${asset[1]}".`);
+                            resolve();
+                        },
+                    });
                     break;
             
                 default:
