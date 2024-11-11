@@ -36,3 +36,7 @@ export interface MouseDetails {
     Y: number;
     buttons: [boolean, boolean, boolean];
 }
+
+export interface IRemoveable {
+    OnRemoved(callback: (removed: IRemoveable) => void): void;
+};

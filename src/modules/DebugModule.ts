@@ -1,9 +1,12 @@
-import { IGame } from '../Interfaces.js'
+import { IGame, IRemoveable } from '../Interfaces.js'
 import { DrawableGameModule } from "../GameModule.js";
 import { DEBUG_FONT } from '../Constants.js';
-import { Point } from '../Types.js';
 import { Renderer } from '../Renderer.js';
 import { InputManager } from './InputManager.js';
+
+export interface IDebugDrawable extends IRemoveable {
+    DebugDraw(): void;
+}
 
 export class DebugModule extends DrawableGameModule {
     Fps: number = NaN;
@@ -13,8 +16,8 @@ export class DebugModule extends DrawableGameModule {
     private elapsedTime: number = 0;
     private textHeight: number;
 
-    public ExtraDebugText: (() => string)[] = [];
-    public ExtraDebugDraw: (() => boolean)[] = [];
+    private ExtraDebugText = new Map<IRemoveable, () => string[]>();
+    private ExtraDebugDraw = new Map<IRemoveable, () => void>();
     
     public static S?: DebugModule;
 
@@ -49,24 +52,17 @@ export class DebugModule extends DrawableGameModule {
         const mouse = InputManager.S.MousePos();
         Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 4, `Mouse: ${mouse[0]},${mouse[1]} (${(mouse[0] / 25).toFixed(2)},${(mouse[1] / 25).toFixed(2)}) ` + InputManager.S.MouseButtons().join(', ') + ' ' + (InputManager.S.MouseInCanvas ? 'Inside' : 'Outside'));
 
-        for (let i = 0; i < this.ExtraDebugText.length; i++) {
-            const extra = this.ExtraDebugText[i];
-            Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * (5 + i), extra());
+        let i = 0;
+        for (const text of this.ExtraDebugText.values()) {
+            for (const line of text()) {
+                Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * (5 + i++), line);
+            }
         }
 
         Renderer.Ctx.restore();
 
-        for (let i = 0; i < this.ExtraDebugDraw.length; ) {
-            const d = this.ExtraDebugDraw[i];
-            if (!d()) {
-                this.ExtraDebugDraw.splice(i, 1);
-                continue;
-            }
-            i++;
-        }
-
-        // if (player !== undefined)
-        //     Renderer.DrawText("white", DEBUG_FONT, 10, this.textHeight * 5, `Player: ${(player.Pos[0] / 25).toFixed(2)},${(player.Pos[1] / 25).toFixed(2)}`);
+        for (const draw of this.ExtraDebugDraw.values())
+            draw();
     }
     
     Update(elapsedTime: number): void {
@@ -87,5 +83,20 @@ export class DebugModule extends DrawableGameModule {
         if (InputManager.S.KeyWentDown('F3')) {
             this.Enabled = true;
         }
+    }
+
+    public AddExtraDebugDraw(thing: IDebugDrawable): void {
+        this.ExtraDebugDraw.set(thing, () => thing.DebugDraw());
+        thing.OnRemoved(removed => this.ExtraDebugDraw.delete(removed))
+    }
+
+    public AddExtraDebugDrawQuick(thing: IRemoveable, draw: () => void): void {
+        this.ExtraDebugDraw.set(thing, draw);
+        thing.OnRemoved(removed => this.ExtraDebugDraw.delete(removed))
+    }
+
+    public AddExtraDebugTextQuick(thing: IRemoveable, text: () => string[]): void {
+        this.ExtraDebugText.set(thing, text);
+        thing.OnRemoved(removed => this.ExtraDebugText.delete(removed))
     }
 }
