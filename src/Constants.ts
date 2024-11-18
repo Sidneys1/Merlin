@@ -4,7 +4,7 @@ export const DEBUG_FONT = "12pt monospace";
 export const BUTTON_FONT = '12pt sans-serif';
 export const MAIN_MENU_FONT = '50px sans-serif';
 
-export const RAIN_HEIGHT = 250;
+export const MAX_DEBUG_FRAME_TIMES = 100;
 
 export enum AssetType {
     Image,
