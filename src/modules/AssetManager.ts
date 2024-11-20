@@ -1,6 +1,27 @@
 import { AssetType } from "../Constants.js";
 
-import {Howl} from "howler";
+import {Howl, HowlOptions} from "howler";
+
+type ResolveFn<T> = (value:T) => void;
+type RejectFn = (reason?: any) => void;
+
+type _AssetBase = {
+    source: string;
+    fallback: string[];
+    reject: RejectFn;
+};
+
+type ImageAsset = _AssetBase&{
+    type: AssetType.Image;
+    resolve: ResolveFn<HTMLImageElement>;
+};
+
+type SoundAsset = _AssetBase&{
+    type: AssetType.Sound;
+    resolve: ResolveFn<Howl>;
+};
+
+type AssetEntry = ImageAsset | SoundAsset;
 
 export class AssetManager {
     private constructor(){}
@@ -8,25 +29,49 @@ export class AssetManager {
     private static assetsLoaded = 0;
     private static imageAssets = new Map<string, HTMLImageElement>();
     private static soundAssets = new Map<string, Howl>();
-    private static assetList: [AssetType, string][] = [];
-    private static requiredAssetList: [AssetType, string][] = [];
+    private static assetList: AssetEntry[] = [];
+    private static requiredAssetList: AssetEntry[] = [];
 
-    public static RequestAsset(type: AssetType, source: string, required=false): void {
-        (required ? this.requiredAssetList : this.assetList).push([type, source]);
+    // public static RequestImage(source: string, ...fallback: string[], required=false): Promise<HTMLImageElement> {
+    //     return new Promise<HTMLImageElement>((resolve, reject) => {
+    //         (required ? this.requiredAssetList : this.assetList).push({
+    //             type: AssetType.Image,
+    //             source,
+    //             resolve,
+    //             reject
+    //         });
+    //     });
+    // }
+
+    public static RequestAsset(type: AssetType.Image, source: string, required?: boolean, ...fallback: string[]): Promise<HTMLImageElement>;
+    public static RequestAsset(type: AssetType.Sound, source: string, required?: boolean, ...fallback: string[]): Promise<Howl>;
+    public static RequestAsset(type: AssetType, source: string, required=false, ...fallback: string[]): Promise<HTMLImageElement|Howl> {
+        return new Promise<HTMLImageElement|Howl>((resolve, reject) => {
+            (required ? this.requiredAssetList : this.assetList).push({
+                type,
+                source,
+                resolve,
+                reject,
+                fallback
+            });
+        });
     }
 
-    public static RequestAssets(type: AssetType, ...sources: string[]): void {
-        this.assetList.push(...sources.map(source => <[AssetType, string]>[type, source]));
+    public static RequestAssets(type: AssetType.Image, ...sources: string[]): Promise<HTMLImageElement>[];
+    public static RequestAssets(type: AssetType.Sound, ...sources: string[]): Promise<Howl>[];
+    public static RequestAssets(type: AssetType, ...sources: string[]): Promise<HTMLImageElement|Howl>[] {
+        //@ts-ignore
+        return sources.map(s => this.RequestAsset(type, s));
     }
 
-    public static GetImage(id: string) {
+    public static GetImage(id: string): HTMLImageElement {
         const ret = this.imageAssets.get(id);
         if (ret === undefined)
             throw `Missing asset "${id}".`;
         return ret;
     }
 
-    public static GetSound(id: string) {
+    public static GetSound(id: string): Howl {
         const ret = this.soundAssets.get(id);
         if (ret === undefined)
             throw `Missing asset "${id}".`;
@@ -52,36 +97,77 @@ export class AssetManager {
         console.debug(`Loaded all other assets in ${diff}ms`);
     }
 
-    private static LoadAsset(asset: [AssetType, string], increment = true): Promise<void> {
-        const assetPath = asset[1];
+    // private static _attemptLoadImage(accept, reject, source: string, ...fallback: string[]): Promise<boolean> {
+    //     const p = new Promise((a, r) => {
+
+    //     }).catch(e => {
+    //         e => 
+    //     });
+    // }
+
+    private static _loadImage(source: string, accept: (image: HTMLImageElement) => void, reject: RejectFn, ...fallback: string[]): void {
+        const img = new Image();
+        const sources = [...fallback];
+        img.addEventListener('load', e => {
+            console.info(`Loaded image "${source}".`)
+            accept(img);
+            return;
+        });
+        img.addEventListener('error', e => {
+            const next_source = sources.shift();
+            if (next_source === undefined) {
+                reject(`Failed to load image "${source}".`);
+                return;
+            }
+            console.debug(`Attempting to load image "${next_source}" as "${source}"...`)
+            img.src = next_source;
+        });
+        console.debug(`Attempting to load image "${source}"...`)
+        img.src = source;
+    }
+
+    private static _loadSound(source: string, accept: (sound: Howl) => void, reject: RejectFn, ...fallback: string[]): void {
+        console.debug(`Attempting to load sound "${source}"...`);
+        const sources = [...fallback];
+        const opts: HowlOptions = {
+            src: source,
+            html5: true,
+            preload: true,
+            onload: () => accept(sound),
+        };
+        function onloaderror(id: number, e: unknown) {
+            console.error(`Failed loading sound "${source}" (${id}): ${e}...`)
+            const next_source = sources.shift();
+            if (next_source === undefined) {
+                reject(e);
+                return;
+            }
+            opts.src = next_source;
+            sound = new Howl(opts)
+        }
+        opts.onloaderror = onloaderror;
+        let sound = new Howl(opts);
+    }
+
+    private static LoadAsset(asset: AssetEntry, increment = true): Promise<void> {
         return new Promise((resolve, reject) => {
-            switch (asset[0]) {
+            switch (asset.type) {
                 case AssetType.Image:
-                    const img = new Image();
-                    img.addEventListener('load', e => {
+                    this._loadImage(asset.source, (image: HTMLImageElement) => {
                         if (increment) this.assetsLoaded++;
-                        this.imageAssets.set(asset[1], img);
-                        console.debug(`Loaded asset "${asset[1]}".`);
+                        this.imageAssets.set(asset.source, image);
+                        asset.resolve?.(image)
                         resolve();
-                    });
-                    img.addEventListener('error', e => reject(e));
-                    console.debug(`Requesting asset "${asset[1]}"...`);
-                    img.src = assetPath;
+                    }, reject, ...asset.fallback);
                     break;
 
                 case AssetType.Sound:
-                    console.debug(`Requesting asset "${asset[1]}"...`);
-                    const sound = new Howl({
-                        src: asset[1],
-                        html5: true,
-                        preload: true,
-                        onload: () => {
-                            if (increment) this.assetsLoaded++;
-                            this.soundAssets.set(asset[1], sound);
-                            console.debug(`Loaded asset "${asset[1]}".`);
-                            resolve();
-                        },
-                    });
+                    this._loadSound(asset.source, (sound: Howl) => {
+                        if (increment) this.assetsLoaded++;
+                        this.soundAssets.set(asset.source, sound);
+                        asset.resolve?.(sound);
+                        resolve();
+                    }, reject, ...asset.fallback);
                     break;
             
                 default:

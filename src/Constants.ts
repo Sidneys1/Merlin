@@ -7,8 +7,8 @@ export const MAIN_MENU_FONT = '50px sans-serif';
 export const MAX_DEBUG_FRAME_TIMES = 100;
 
 export enum AssetType {
-    Image,
-    Sound,
+    Image = 'image',
+    Sound = 'sound',
 }
 
 export const REQUIRED_ASSETS: [AssetType, string][] = [
